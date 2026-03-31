@@ -1,6 +1,9 @@
+# ============================================================
+# Disciplina: Introdução à Ciência de Dados
+# ============================================================
 # Arquivo: 02-lista-resolucao.R
-# Autor: Washington S. da Silva
-# Data: 19/03/2026
+# Autor(a): Jonathan Vargas Silva
+# Data: 2026/03/19
 # Objetivo: Resolução da lista de exercícios 2
 
 # Configuracoes globais  ------------------------------------
@@ -15,104 +18,134 @@ library(gapminder) # contém os dados gapminder
 
 # carrega os dados do pacote gapminder
 data(gapminder)
-dplyr::glimpse(gapminder)
 
 
+## Exercício 1
 
+caminho_csv <- here("data/raw/productionlog_sample.csv")
+dados_csv <- read.csv(caminho_csv)
+glimpse(dados_csv)
 
-# Exercício 1 -------------------------------------------------------------
-
-
-
-
-# Exercício 2 -------------------------------------------------------------
+## Exercício 2
 
 dados_expectativa <- gapminder |>
-  select(___, ___, ___)
+  select(country, year, lifeExp)
 
 
+## Exercício 3
 
-# Exercício 3 -------------------------------------------------------------
+variaveis_exc_pop_e_gdppercap <- gapminder |>
+  select(-pop, -gdpPercap)
+
+## Exercício 4
 
 variaveis_com_c <- gapminder |>
-  select(___(___))
+  select(starts_with("c"))
 
+## Exercício 5
 
+variaveis_sequencia <- gapminder |>
+  select(country:pop)
 
-# Exercício 4 -------------------------------------------------------------
+# Exercício 6
 
+variaveis_com_p <- gapminder |>
+  select(contains("p") | ends_with("p"))
 
+# Exercício 7
 
-# Exercício 5 -------------------------------------------------------------
+paises_america_2007 <- gapminder |>
+  filter(continent == "Americas" & year == "2007")
 
+# Exercício 8
 
+dados_brasil <- gapminder |> 
+  filter(country == "Brazil")
 
-# Exercício 6 -------------------------------------------------------------
+# Exercício 9
 
+asia_pop_2007 <- gapminder |>
+  filter(continent == "Asia", pop > 50000000, year == "2007")
+  
+# Exercício 10
 
+paises_expVida_ppc <- gapminder |>
+  filter(lifeExp > 75, gdpPercap < 10000, year == "2007")
 
-# Exercício 7 -------------------------------------------------------------
+# Exercício 11
 
+populacao_em_mi <- gapminder |>
+  mutate(pop_em_milhoes = pop / 1000000)
 
+# Exercício 12
 
-# Exercício 8 -------------------------------------------------------------
+receita_total <- gapminder |>
+  mutate(gdp_total = gdpPercap * pop)
 
+# Exercício 13
 
+maiores_populacoes <- gapminder |> 
+  mutate(economia_grande = ifelse(pop > 50000000, "Sim", "Não"))
 
-# Exercício 9 -------------------------------------------------------------
+# Exercício 14
 
+paises_expVida_ranking <- gapminder |> 
+  filter(year == 2007) |> 
+  mutate(lifeExp_ranking = case_when(
+      lifeExp < 60 ~ "Baixa",
+      lifeExp >= 60 & lifeExp <= 75 ~ "Média",
+      lifeExp > 75 ~ "Alta"))
 
+# Exercício 15
 
-# Exercício 10 -------------------------------------------------------------
+expectativa_por_continente <- gapminder |>
+  group_by(continent) |>
+  summarise(expectativa_media = mean(lifeExp))
 
+# Exercício 16
 
+populacao_por_continente <- gapminder |>
+  group_by(continent) |>
+  summarise(populacao_total = sum(pop))
 
-# Exercício 11 -------------------------------------------------------------
+# Exercício 17
 
+desempenho_filiais <- gapminder |> 
+  filter(year == 2007) |> 
+  group_by(continent) |> 
+  summarise(n_filiais = n(), pib_medio = mean(gdpPercap),
+            pib_maximo = max(gdpPercap))
 
+# Exercício 18
 
-# Exercício 12 -------------------------------------------------------------
+evolucao_expVida_americas <- gapminder |> 
+  filter(continent == "Americas") |> 
+  group_by(year) |> 
+  summarise(expectativa_media = mean(lifeExp))
 
+# Exercício 19
 
+ranking_expVida_2007 <- gapminder |> 
+  filter(year == 2007) |> 
+  arrange(desc(lifeExp))
 
-# Exercício 13 -------------------------------------------------------------
+# Exercício 20
 
+menores_pib_2007 <- gapminder |> 
+  filter(year == 2007) |> 
+  arrange(gdpPercap) |> 
+  head(5)
 
+# Exercício 21
 
-# Exercício 14 -------------------------------------------------------------
+ranking_americas_2007 <- gapminder |> 
+  filter(year == 2007, continent == "Americas") |> 
+  arrange(desc(pop))
 
+# Exercício 22
 
-
-# Exercício 15 -------------------------------------------------------------
-
-
-
-# Exercício 16 -------------------------------------------------------------
-
-
-
-# Exercício 17 -------------------------------------------------------------
-
-
-
-# Exercício 18 -------------------------------------------------------------
-
-
-
-# Exercício 19 -------------------------------------------------------------
-
-
-
-# Exercício 20 -------------------------------------------------------------
-
-
-
-# Exercício 21 -------------------------------------------------------------
-
-
-
-# Exercício 22 -------------------------------------------------------------
-
-
-
-# ------------------------- FIM ---------------------------------------------#
+ranking_continentes_2007 <- gapminder |> 
+  filter(year == 2007) |> 
+  group_by(continent) |> 
+  summarise(expectativa_media = mean(lifeExp)) |> 
+  arrange(desc(expectativa_media))

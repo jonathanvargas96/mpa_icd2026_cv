@@ -1,24 +1,25 @@
-# ============================================================
+# =============================================================
 # Disciplina: Introdução à Ciência de Dados
-# ============================================================
+# =============================================================
 # Arquivo: 01_introducao.R
-# Autor(a): Jonathan Vargas Silva
-# Data: 26/03/2026
-# Objetivos: Aprender RStudio, script R e alguns fundamentos da linguagem R
-
-# Atalho para criar seções de código: CTRL + SHIFT + R
+# Autor: Jonathan Vargas Silva
+# Data: 2026/03/12
+# Objetivo: Aprender a usar RStudio, script R  e alguns fundamentos de R
 
 
-# Configuracoes globais  --------------------------------------------------
+
+
+
+
+# Configuracoes globais -------------------------------------------------
 
 # define opções globais para exibição de números
 options(digits = 5, scipen = 999)
 
 # carrega os pacotes necessários
-# LEMBRE-SE: Pacotes precisarm ser instalados antes de serem carregados
 library(here) # para usar caminhos relativos
 library(tidyverse) # meta-pacote que inclui readr, dplyr, ggplot2, etc.
-library(skimr) # para compreender os dados
+library(skimr) # para compreender dados
 library(janitor) # para limpar nomes de colunas
 
 
@@ -28,7 +29,6 @@ library(janitor) # para limpar nomes de colunas
 
 # adicao
 15 + 7
-
 
 # subtracao
 20 - 6
@@ -40,10 +40,10 @@ library(janitor) # para limpar nomes de colunas
 84 / 7
 
 ## potenciacao
-2^5
+2 ^ 5
 
-# Predencia de operacoes matemáticas
-# parenteses primeiro, depois potenciacao, multiplicacao e divisao,
+# Predencia de operacao matemáticas
+# parenteses primeiro, depois potenciacao, multiplicacao e divisao
 # e por ultimo adicao e subtracao
 
 # parentese primeiro
@@ -51,7 +51,8 @@ library(janitor) # para limpar nomes de colunas
 84 / (7 + 5)
 
 
-# Exemplos de Funções matemáticas  ----------------------------------------
+
+# Exemplos de funções matemáticas -----------------------------------------
 
 # logaritmo natural
 log(100)
@@ -72,6 +73,7 @@ sqrt(225)
 round(3.14159, digits = 2)
 
 
+
 # Tipos atômicos e classes ------------------------------------------------
 
 # Os tipos de dados definem como os dados
@@ -80,9 +82,9 @@ round(3.14159, digits = 2)
 # tipo double e classe numeric
 a <- 3.14
 a
-# função que retorna o tipo do objeto
+# funcao retorna o tipo do objeto
 typeof(a)
-# função que retorna a classe do objeto
+# funcao que retorna a classe do objeto
 class(a)
 
 # character
@@ -104,30 +106,32 @@ e
 f <- 1 / 0
 f
 
-# coerção de logical para numeric
+# correcao de logical para numeric
 # TRUE = 1 e FALSE = 0
 f <- as.numeric(c)
 f
 
 
+
 # Vetores numéricos -------------------------------------------------------
 
-# Cria dois vetores numericos com dados de receita e custo diarios
+# Cria dois vetores numericos com dados de receita e custos diarios
 
 receita_diaria <- c(9200, 8700, 10100, 9800, 11050)
 print(receita_diaria)
 
 
-custo_diario <- c(6400, 6000, 7200, 6800, 7600)
+custo_diario <- c (6400, 6000, 7200, 6800, 7600)
 custo_diario
 
 
-# Vetorizacao: operacoes elemento a elemento
+# Vetorizacao: operacoes elementos a elemento
 lucro_diario <- receita_diaria - custo_diario
 margem_diaria <- lucro_diario / receita_diaria
 
 
-# Funções úteis para vetores numéricos  -----------------------------------
+
+# Funções úteis para vetores numéricos ------------------------------------
 
 # logaritmo da receita diária
 log(receita_diaria)
@@ -137,7 +141,6 @@ sum(receita_diaria)
 
 # receita media da semana
 mean(receita_diaria)
-
 
 # tamanho do vetor de receita
 # Nesse caso é o número de dias registrados
@@ -154,13 +157,14 @@ max(receita_diaria)
 ?length
 
 
+
 # Vetores de caracteres e lógicos -----------------------------------------
 
 # vetores devem conter o mesmo tipo de dados, ou seja,
 # todos os elementos devem ser do mesmo tipo
 
 # vetor de caracteres
-nome_empresa <- c("Loja A", "Loja B", "Loja C")
+nome_empresa <- c ("Loja A", "Loja B", "Loja C")
 # exibe o vetor criado
 nome_empresa
 
@@ -168,6 +172,8 @@ nome_empresa
 meta_batida <- c(TRUE, FALSE, TRUE)
 # exibe o vetor criado
 meta_batida
+
+
 
 
 # Fatores -----------------------------------------------------------------
@@ -197,6 +203,7 @@ meses
 sort(meses)
 
 
+
 # Importa arquivo de dados ------------------------------------------------
 
 # define o caminho relativo para o arquivo csv
@@ -208,26 +215,28 @@ caminho_csv <- here("data/raw/dados_vendas.csv")
 dados_vendas <- read_csv(caminho_csv)
 
 
+
 # Compreendendo os dados --------------------------------------------------
 
 ## Exibe visão geral dos dados
-dplyr::glimpse(dados_vendas)
+glimpse(dados_vendas)
 
-## Visualiza as primeiras linhas da tabela
+## Visualiza as primeiras Linhas da tabela
 head(dados_vendas)
 
 ## Visão detalhada dos dados
-skimr::skim(dados_vendas)
+skim(dados_vendas)
+
 
 
 # Preparação dos dados para análise ---------------------------------------
 
-## limpa os nomes das colunas
+## Limpa os nomes das colunas
 dados_vendas <- dados_vendas |>
-  janitor::clean_names()
+  clean_names()
 
 ## visao geral dos dados
-glimpse(dados_vendas)
+glimpse (dados_vendas)
 
 ## converte as colunas de cidade, representante e produto para fatores
 dados_vendas_limpos <- dados_vendas |>
@@ -240,13 +249,12 @@ dados_vendas_limpos <- dados_vendas |>
 ## verifica a estrutura dos dados
 glimpse(dados_vendas_limpos)
 
-
-## Resumo estatístico do objeto
-summary(dados_vendas)
+## Resumos estatístico do objeto
 summary(dados_vendas_limpos)
 
 
-# Salva os dados limpos ---------------------------------------------------
+
+# Salva os dados limpos --------------------------------------------------
 
 # define o caminho relativo da pasta onde o arquivo limpo será salvo
 caminho_csv_limpo <- here("data/clean/dados_vendas_limpos.rds")
@@ -255,10 +263,10 @@ caminho_csv_limpo <- here("data/clean/dados_vendas_limpos.rds")
 readr::write_rds(dados_vendas_limpos, caminho_csv_limpo)
 
 
-## Quer perguntas de negócio você faria para esse conjunto de dados?
+## Que perguntas de negócio você faria para esse conjunto de dados?
 
 
-# Manipulação/análise com o pacote dplyr  ---------------------------------
+# Manipulação/análise com o pacote dplyr ----------------------------------
 
 # Exemplo 1
 # Pergunta de negócio: quero apenas as vendas realizadas em Formiga
@@ -279,7 +287,7 @@ dados_vendas_limpos |>
 # Pergunta de negócio: quero apenas as colunas cidade e receita
 
 dados_vendas_limpos |>
-  select(cidade, receita)
+  select(cidade,receita)
 
 
 # Exemplo 4
@@ -314,7 +322,7 @@ receita_por_cidade_produto <- dados_vendas_limpos |>
 receita_por_cidade_produto
 
 
-# Exemplo 6
+# Exemplo 7
 # Pergunta de negócio: quero saber a receita total por cidade e representante,
 # em ordem decrescente de receita
 
@@ -324,7 +332,7 @@ dados_vendas_limpos |>
   arrange(desc(receita_total))
 
 
-# Exemplo 7
+# Exemplo 8
 # Pergunta de negócio: Quero saber a receita total por cidade e produto
 # em ordem decrescente
 
@@ -337,91 +345,51 @@ dados_vendas_limpos |>
 receita_por_cidade_produto
 
 
-# Resolucao dos exercicios  -----------------------------------------------
 
-# define o caminho relativo para o arquivo rds
-caminho_rds <- here("data/clean/dados_vendas_limpos.rds")
 
-# importa o arquivo rds com a função read_rds do pacote readr
-dados_vendas_limpos <- readr::read_rds(caminho_rds)
-
-# exibe o objeto
-glimpse(dados_vendas_limpos)
-
-# Exercício 1
+# Resolução dos exercícios ------------------------------------------------
 
 custos_semanais <- c(5400, 6100, 5900, NA, 6300, 6000)
-custos_semanais
 
-## cálculo do custo total usando a função sum() removendo NA
-custo_total <- sum(custos_semanais, na.rm = TRUE)
-custo_total
+# Exercício 1
+sum(custos_semanais, na.rm = TRUE)
 
-
-# Exercício 2
-
-## cálculo do custo médio usando a função mean() removendo NA
-custo_medio <- mean(custos_semanais, na.rm = TRUE)
-custo_medio
-
+# Exercício 2.
+mean(custos_semanais, na.rm = TRUE)
 
 # Exercício 3
-
-## cálculo do custo mínimo usando a função min()
-custo_minimo <- min(custos_semanais, na.rm = TRUE)
-custo_minimo
-
-## cálculo do custo máximo usando a função max()
-custo_maximo <- max(custos_semanais, na.rm = TRUE)
-custo_maximo
-
+min(custos_semanais, na.rm = TRUE)
+max(custos_semanais, na.rm = TRUE)
 
 # Exercício 4
-
-## filtra os dados para obter apenas as vendas do Produto A
 dados_vendas_limpos |>
   filter(produto == "Produto A")
 
-
 # Exercício 5
-
-## filtra os dados para obter apenas as vendas realizadas em Piumhi
-## que tiveram mais de 10 unidades vendidas
 dados_vendas_limpos |>
   filter(cidade == "Piumhi" & unidades > 10)
 
-
 # Exercício 6
-
-## cálculo do total de unidades vendidas por produto.
 dados_vendas_limpos |>
-  group_by(produto) |>
-  summarise(unidades_total = sum(unidades))
-
+  group_by(produto) |> 
+  summarise(sum(unidades))
 
 # Exercício 7
-
-# cálculo da receita média por cidade
 dados_vendas_limpos |>
-  group_by(cidade) |>
-  summarise(receita_media = mean(receita))
-
+  group_by(cidade) |> 
+  summarise(mean(receita))
 
 # Exercício 8
-
-# cálculo da receita total por representante
 dados_vendas_limpos |>
-  group_by(representante) |>
-  summarise(receita_total = sum(receita))
-
+  group_by(representante) |> 
+  summarise(sum(receita))
 
 # Exercício 9
-
-# cálculo do menor preço unitário por produto
 dados_vendas_limpos |>
-  group_by(produto) |>
-  summarise(preco_unitario_min = min(preco_unitario))
+  group_by(produto) |> 
+  summarise(min(preco_unitario))
 
-
-
-# ------------------------- FIM -------------------------------------------#
+# Exercício 10
+  
+resultado <- dados_vendas_limpos |>
+  select(cidade, produto)
