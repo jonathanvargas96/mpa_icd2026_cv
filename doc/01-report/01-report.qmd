@@ -1,0 +1,83 @@
+---
+lang: pt-BR
+title: "Análise de Cenários de Investimento"
+author: "Jonathan Vargas Silva"
+date: today
+format: html
+execute:
+  message: false
+  warning: false
+---
+
+## Objetivo
+
+Este relatório compara o valor futuro de um investimento de 
+R$ 10.000 aplicado por 10 anos sob diferentes taxas de juros.
+
+## Configuração
+
+```{r}
+# carrega os pacotes necessários
+library(tidyverse)
+library(gt)
+```
+
+Função utilizada:
+
+```{r}
+# função para calcular o valor futuro de um investimento
+calcular_valor_futuro <- function(valor_presente, taxa, periodos = 1) {
+  valor_futuro <- valor_presente * (1 + taxa)^periodos
+  return(valor_futuro)
+}
+```
+
+## Cenários analisados
+
+```{r}
+# define as taxas de juros anuais a serem analisadas
+taxas <- c(0.02, 0.05, 0.08, 0.10, 0.12, 0.15)
+
+# calcula o valor futuro para cada taxa e organiza os resultados em uma tibble
+cenarios <- tibble(
+  taxa_anual = taxas,
+  taxa_percentual = paste0(taxas * 100, "%"),
+  valor_futuro = map_dbl(
+    taxas,
+    \(taxa) calcular_valor_futuro(10000, taxa, 10)
+  ),
+  ganho = valor_futuro - 10000
+)
+
+# exibe o objeto/tibble
+cenarios
+```
+
+```{r}
+# tabela personalizada usando gt
+cenarios |>
+  select(-taxa_anual) |>
+  gt() |>
+  fmt_currency(columns = c(valor_futuro, ganho), currency = "BRL") |>
+  cols_label(
+    taxa_percentual = "Taxa Anual",
+    valor_futuro = "Valor Futuro",
+    ganho = "Ganho Total"
+  ) |>
+  tab_header(
+    title = "Comparação de Cenários de Investimento",
+    subtitle = "Valor futuro de R$ 10.000 aplicado por 10 anos"
+  ) |>
+  tab_options(
+  table.font.size = px(20),
+  heading.title.font.size = px(26),
+  heading.subtitle.font.size = px(20)
+)
+```
+
+
+## Conclusão
+
+A tabela acima mostra como a taxa de juros impacta 
+significativamente o valor final do investimento ao 
+longo de 10 anos.
