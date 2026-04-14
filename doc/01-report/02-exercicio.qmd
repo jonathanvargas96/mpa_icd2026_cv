@@ -1,0 +1,84 @@
+---
+lang: pt-BR
+title: "Análise de Cenários de Investimento"
+author: "Jonathan Vargas Silva"
+date: "2026-04-13"
+format: html
+execute:
+  message: false
+  warning: false
+---
+
+## Objetivo
+
+Este relatório compara o valor futuro de um investimento de 
+R$ 20.000 aplicado por 60 meses sob diferentes taxas de juros.
+
+## Configuração
+
+```{r}
+# carrega os pacotes necessários
+library(tidyverse)
+library(gt)
+```
+
+Função utilizada:
+
+```{r}
+# função para calcular montante final de um investimento
+calcular_montante_mensal <- function(capital, taxa_anual, meses) {
+  taxa_mensal <- taxa_anual / 12
+  montante <- capital * (1 + taxa_mensal)^meses
+  return(montante)
+}
+```
+
+## Cenários analisados
+
+```{r}
+# define as taxas de juros mensais a serem analisadas
+taxas <- c(0.06, 0.08, 0.10, 0.12, 0.15)
+
+# calcula o valor futuro para cada taxa e organiza os resultados em uma tibble
+cenarios <- tibble(
+  taxa_mensal = taxas,
+  taxa_percentual = paste0(taxas * 100, "%"),
+  valor_futuro = map_dbl(
+    taxas,
+    \(taxa) calcular_montante_mensal(20000, taxa, 60)
+  ),
+  ganho = valor_futuro - 20000
+)
+
+# exibe o objeto/tibble
+cenarios
+```
+
+```{r}
+# tabela personalizada usando gt
+cenarios |>
+  select(-taxa_mensal) |>
+  gt() |>
+  fmt_currency(columns = c(valor_futuro, ganho), currency = "BRL") |>
+  cols_label(
+    taxa_percentual = "Taxa Mensal",
+    valor_futuro = "Valor Futuro",
+    ganho = "Ganho Total"
+  ) |>
+  tab_header(
+    title = "Comparação de Cenários de Investimento",
+    subtitle = "Valor futuro de R$ 20.000 aplicado por 60 meses"
+  ) |>
+  tab_options(
+  table.font.size = px(20),
+  heading.title.font.size = px(26),
+  heading.subtitle.font.size = px(20)
+)
+```
+
+## Conclusão
+
+A tabela acima mostra como a taxa de juros impacta significativamente o valor
+final do investimento ao longo de 60 meses.
+
+

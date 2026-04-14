@@ -323,8 +323,8 @@ vpl_simulado <- map_dbl(
   }
 )
 
-# visão geral do resultado da simulação 
-glimpse(vpl_simulado)
+# visão geral do resultado da simulação
+sglimpse(vpl_simulado)
 
 vpl_simulado <- map_dbl(
   1:5000,
