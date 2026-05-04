@@ -1,0 +1,174 @@
+---
+title: "Resolução de Exercícios: Fundamentos de Probabilidade"
+author: "Jonathan Vargas Silva"
+date: "2026-04-30"
+date-format: "DD/MM/YYYY"
+lang: ptBR
+format: pdf
+---
+
+## Resolução dos exercícios da aula 8
+
+
+### Exercício 1: Espaço amostral e eventos
+
+#### 1. Definir o espaço amostral
+
+* $n$: a empresa não é adquirida
+* $f$: a empresa é adquirida de forma amigável
+* $h$: a empresa é adquirida de forma hostil
+
+$$S = \{n, f, h\}$$
+
+#### 2. Definir os eventos
+
+*   Evento $A$ (Ocorre aquisição):
+    $$A = \{f, h\}$$
+*   Evento $F$ (Aquisição amigável):
+    $$F = \{f\}$$
+*   Evento $H$ (Aquisição hostil):
+    $$H = \{h\}$$
+
+#### 3. Identificar eventos mutuamente exclusivos
+
+*   Eventos $F$ e $H$: como uma aquisição é classificada como amigável ou hostil,
+elas não podem ocorrer ao mesmo tempo.
+    $$F \cap H = \emptyset$$
+
+*   Evento $A$: se houver uma aquisição, o resultado "não-adquirida" é impossível.
+    $N = \{n\}$: $$A \cap N = \emptyset$$
+
+Portanto, os eventos $F$ e $H$ são mutuamente exclusivos, a probabilidade de
+ocorrer qualquer tipo de aquisição ($A$) é a soma das probabilidades individuais:
+$$P(A) = P(F \cup H) = P(F) + P(H)$$
+
+
+### Exercício 2: Complemento e união
+
+#### 1. Definir Evento R: Retorno negativo no mês
+
+* $R$: retorno negativo
+ $P(R) = 0.18$
+
+Cálculo do Complemento ($P(\bar{R})$):
+$$P(\bar{R}) = 1 - P(R)$$
+$$P(\bar{R}) = 1 - 0.18 = 0.82$$
+
+Portanto, existe uma probabilidade de **82%** de a carteira não apresentar retorno
+negativo no mês. O complemento abrange todos os resultados do espaço amostral
+que não estão contidos em $R$.
+
+#### 2. Calcular $P(A \cup B)$
+
+* $A$: ação X cai mais de 2% no dia
+* $B$: ação Y cai mais de 2% no dia.
+$P(A) = 0.10$, $P(B) = 0.08$ e $P(A \cap B) = 0.04$
+
+$$P(A \cup B) = P(A) + P(B) - P(A \cap B)$$
+$$P(A \cup B) = 0.10 + 0.08 - 0.04$$
+$$P(A \cup B) = 0.14$$
+
+A probabilidade de que pelo menos uma das ações (X ou Y) apresente queda
+superior a 2% no dia é de **14%**.
+
+
+### Exercício 3: Independência e Sequências
+
+#### 1. Calcular probabilidade de um gestor superar o benchmark por 10 anos consecutivos
+
+* $P(\text{superar}) = 0.50$
+
+$$P(10 \text{ anos}) = 0.50^{10}$$
+$$P(10 \text{ anos}) = 0.0009765625$$
+
+#### 2. Calcular expectativa em um universo de 2.000 gestores
+
+$$2.000 \times 0.50^{10}$$
+$$2.000 \times 0.0009765625 = 1.953125$$
+
+
+#### 3. Interpretar rankings de desempenho
+
+Este resultado demonstra que, em grandes amostras, sequências extremas de sucesso
+são causadas por diversos fatores, sem necessariamente refletir o desempenho, de
+fato. Portanto, rankings de longo prazo não devem analisar um único fator de
+forma isolada, sem considerar o tamanho do universo inicial.
+
+#### 4. Verificar independência e exclusividade mútua
+
+* $P(C) > 0$ e $P(D) > 0$)
+
+$P(C \cap D) = P(C) \times P(D)$.
+$P(C) > 0$ e $P(D) > 0$
+$P(C \cap D) > 0$.
+
+Os eventos não podem ser mutuamente exclusivos. Pois, se dois eventos são
+independentes e têm probabilidades positivas, há sempre uma chance de ocorrerem
+juntos.
+
+
+### Exercício 4: Probabilidade Condicional
+
+*   $P(\text{atraso}) = 0.15$ (15%)
+*   $P(\text{inadimplente}) = 0.09$ (9%)
+*   $P(\text{atraso} \cap \text{inadimplente}) = 0.06$ (6%)
+
+#### Calcular $P(\text{inadimplente} \mid \text{atraso})$
+
+$$P(\text{inadimplente} \mid \text{atraso}) = \frac{P(\text{inadimplente} \cap \text{atraso})}{P(\text{atraso})}$$
+$$P(\text{inadimplente} \mid \text{atraso}) = \frac{0.06}{0.15}$$
+$$P(\text{inadimplente} \mid \text{atraso}) = 0.40 \text{ ou } 40\%$$
+
+#### Comparar com a Probabilidade Incondicional
+
+*   Probabilidade Incondicional
+$P(\text{inadimplente})$: 9%
+*   Probabilidade Condicional
+$P(\text{inadimplente} \mid \text{atraso})$: 40%
+
+A probabilidade de um cliente ficar inadimplente aumenta de 9% para 40%, quando
+ele já atrasou uma parcela. Isso indica que o atraso é um forte indicador
+antecedente de inadimplência.
+
+
+### Exercício 5: Probabilidade Total
+
+#### Cálcular a taxa total de inadimplência ($P(I)$)
+
+$$P(I) = [P(B) \times P(I \mid B)] + [P(M) \times P(I \mid M)] + [P(A) \times
+P(I \mid A)]$$
+
+$$P(I) = (0.50 \times 0.03) + (0.35 \times 0.08) + (0.15 \times 0.22)$$
+$$P(I) = 0.015 + 0.028 + 0.033$$
+$$P(I) = 0.076$$
+
+A taxa total de inadimplência da carteira é de **7,6%**.
+
+
+### Exercício 6: Bayes
+
+*   $P(D)$: dificuldade financeira = $0,08$
+*   $P(S)$: empresa saudável = $1 - 0,08 = 0,92$
+*   $P(R \mid D)$: em dificuldade financeira, classificada como risco elevado =
+$0,85$
+*   $P(R \mid S)$: empresa saudável, classificada como risco elevado = $0,25$
+
+#### 1. Calcular probabilidade total de ser classificada como risco elevado
+($P(R)$)
+
+$$P(R) = [P(D) \times P(R \mid D)] + [P(S) \times P(R \mid S)]$$
+$$P(R) = (0,08 \times 0,85) + (0,92 \times 0,25)$$
+$$P(R) = 0,068 + 0,230 = 0,298$$
+
+A probabilidade de uma empresa qualquer ser classificada como risco elevado pelo
+modelo é de **29,8%**.
+
+#### 2. Calcular probabilidade de dificuldade financeira devido ao risco elevado
+($P(D \mid R)$)
+
+$$P(D \mid R) = \frac{P(D) \times P(R \mid D)}{P(R)}$$
+
+$$P(D \mid R) = \frac{0,068}{0,298} \approx 0,2282$$
+
+A probabilidade de uma empresa, classificada como risco elevado, realmente entrar
+em dificuldade financeira é de, aproximadamente, **22,82%**.
