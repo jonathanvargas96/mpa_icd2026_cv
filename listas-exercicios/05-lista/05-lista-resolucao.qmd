@@ -1,0 +1,227 @@
+---
+title: "Resolução: Lista de Exercícios 5"
+author: "Jonathan Vargas Silva"
+date: "2026-05-07"
+date-format: "DD/MM/YYYY"
+lang: ptBR
+format: pdf
+---
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+
+# define opções globais para exibição de números
+options(digits = 5, scipen = 999)
+```
+
+# Resolução da Lista de exercícios 5
+
+## Exercício 1
+
+```{r}
+# define semente
+set.seed(20260507)
+
+# retornos possíveis e probabilidades
+retornos_possiveis <- c(0.06, 0.02, -0.01, -0.04)
+probabilidades <- c(0.15, 0.45, 0.25, 0.15)
+
+# gera as amostras
+amostras <- sample(
+  x = retornos_possiveis, size = 10000, replace = TRUE,prob = probabilidades)
+
+# calcula os resultados
+retornos <- tibble(retorno = amostras) |> 
+  summarise(
+    valor_esperado     = mean(retorno),
+    variancia          = var(retorno),
+    desvio_padrao      = sd(retorno),
+    prob_retorno_negativo  = mean(retorno < 0)
+  )
+
+# visão geral dos resultados
+glimpse(retornos)
+```
+
+## Exercício 2
+
+```{r}
+# define semente
+set.seed(20260508)
+
+# lucros possíveis e probabilidades
+lucros_possiveis <- c(900, 150, -3500)
+probabilidades <- c(0.88, 0.08, 0.04)
+
+# gera as amostras
+amostras <- sample(
+  x = lucros_possiveis, size = 20000, replace = TRUE, prob = probabilidades)
+
+# calcula os resultados
+analise_credito <- tibble(retorno = amostras) |> 
+  summarise(
+    lucro_medio     = mean(retorno),
+    desvio_padrao      = sd(retorno),
+    prob_prejuizo  = mean(retorno < 0)
+  )
+
+# visão geral dos resultados
+glimpse(analise_credito)
+
+# simula 80 operações
+lucros_carteiras <- replicate(5000, {
+  sum(sample(lucros_possiveis, size = 80, replace = TRUE,
+             prob = probabilidades))
+})
+
+# valor esperado da carteira
+lucro_medio_carteira <- mean(lucros_carteiras)
+desvio_padrao_carteira <- sd(lucros_carteiras)
+
+# comparativo de resultados
+glimpse(lucro_medio_carteira)
+glimpse(80 * analise_credito$lucro_medio)
+```
+
+## Exercício 3
+
+```{r}
+# define semente
+set.seed(20260509)
+
+# sorteia o estado da economia
+simulacao_economia <- tibble(estado = sample(c("expansao", "recessao"), 
+                  size = 20000, 
+                  replace = TRUE, 
+                  prob = c(0.7, 0.3))
+)
+
+# sorteia o o retorno condicionado ao estado
+simulacao_economia <- simulacao_economia |>
+  mutate(retorno = map_dbl(estado, \(e) {
+      if (e == "expansao") {
+        sample(c(0.05, 0.02, 0.00), size = 1, prob = c(0.3, 0.5, 0.2))
+      } else {sample(c(0.01, -0.02, -0.05), size = 1, prob = c(0.2, 0.5, 0.3))}
+    })
+  )
+
+# visão prévia dos resultados
+glimpse(simulacao_economia)
+
+# estima as métricas solicitadas
+analise_retornos <- simulacao_economia |> 
+  summarise(
+    esperado_incondicional = mean(retorno),
+    esperado_expansao      = mean(retorno[estado == "expansao"]),
+    esperado_recessao      = mean(retorno[estado == "recessao"]),
+    probabilidade_negativo     = mean(retorno < 0)
+  )
+
+# visão geral dos resultados
+glimpse(analise_retornos)
+```
+
+## Exercício 4
+
+```{r}
+# define semente
+set.seed(20260510)
+
+# simula o cenário do mercado
+simulacao_carteira <- tibble(cenario = sample(c("boom", "estabilidade", "crise"), 
+                   size = 15000, 
+                   replace = TRUE, 
+                   prob = c(0.20, 0.50, 0.30))
+                   )
+# define dos retornos de A e B
+simulacao_carteira <- simulacao_carteira |> 
+  mutate(RA = case_when(
+      cenario == "boom"         ~ 0.08,
+      cenario == "estabilidade" ~ 0.02,
+      cenario == "crise"        ~ -0.05),
+    RB = case_when(
+      cenario == "boom"         ~ 0.04,
+      cenario == "estabilidade" ~ 0.01,
+      cenario == "crise"        ~ -0.02),
+    RP = 0.6 * RA + 0.4 * RB)
+
+# estima as métricas solicitadas
+metricas_ativos <- simulacao_carteira |> 
+  summarise(esperado_A = mean(RA), desvio_padrao_A = sd(RA),
+    esperado_B = mean(RB), desvio_padrao_B = sd(RB),
+    cov_AB = cov(RA, RB), cor_AB = cor(RA, RB),
+    prob_duplo_neg = mean(RA < 0 & RB < 0),
+    esperado_carteira_construida = mean(RP),
+    desvio_carteira_construida = sd(RP))
+
+# visão geral dos resultados
+glimpse(simulacao_carteira)
+```
+Analisando  os resultados, pode-se concluir que desvio-padrão da carteira
+construída é menor que o do Ativo A (diversificação).
+
+
+## Exercício 5
+
+```{r}
+# define semente
+set.seed(20260511)
+
+# cria função que simula um mês
+simular_mes <- function() {
+  cenario_sorteado <- sample(c("aquecido", "normal", "fraco"), 
+                             size = 1, 
+                             prob = c(0.25, 0.50, 0.25))
+  if (cenario_sorteado == "aquecido") {
+    n_contratos <- 120
+    p_inad <- 0.04
+  } else if (cenario_sorteado == "normal") {
+    n_contratos <- 90
+    p_inad <- 0.08
+  } else {
+    n_contratos <- 60
+    p_inad <- 0.15
+  }
+  
+  # simula o resultado de cada contrato
+  resultados_contratos <- sample(c(1, 0), 
+                                 size = n_contratos, 
+                                 replace = TRUE, 
+                                 prob = c(p_inad, 1 - p_inad))
+  
+  n_inadimplentes <- sum(resultados_contratos)
+  n_adimplentes   <- n_contratos - n_inadimplentes
+  
+  # calcula o lucro mensal total
+  lucro <- (n_adimplentes * 300) - (n_inadimplentes * 2500)
+  
+  # devolve os dados em formato de lista
+  return(list(cenario = cenario_sorteado, 
+              n_inad = n_inadimplentes, 
+              lucro = lucro))
+}
+
+# consolida em uma base de dados
+simulacao_completa <- replicate(10000, simular_mes(), simplify = FALSE) |> 
+  bind_rows()
+
+# calcula as estatísticas solicitadas
+estatisticas_financeira <- simulacao_completa |> 
+  summarise(
+    lucro_mensal_esperado = mean(lucro),
+    desvio_lucro_mensal = sd(lucro),
+    esperado_aquecido = mean(lucro[cenario == "aquecido"]),
+    esperado_normal = mean(lucro[cenario == "normal"]),
+    esperado_fraco = mean(lucro[cenario == "fraco"]),
+    cov_inadimplencia_lucro = cov(n_inad, lucro),
+    cor_inadimplencia_lucro = cor(n_inad, lucro),
+    probabilidade_lucro_neg = mean(lucro < 0)
+  )
+
+# visão geral dos resultados
+glimpse(estatisticas_financeira)
+```
+Ao analisar os resultados, pode-se concluir que a correlação negativa indica que
+quanto maior o número de inadimplentes, menor é o lucro.

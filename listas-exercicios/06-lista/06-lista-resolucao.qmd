@@ -1,7 +1,7 @@
 ---
 title: "Resolução: Lista de Exercícios 6"
 author: "Jonathan Vargas Silva"
-date: "2026-05-07"
+date: "2026-05-14"
 date-format: "DD/MM/YYYY"
 lang: ptBR
 format: pdf
@@ -20,208 +20,163 @@ options(digits = 5, scipen = 999)
 
 ## Exercício 1
 
+### 1. Cálculo Manual
+Para $a=5$, $c=3$, $m=8$ e $X_0=1$:
+
+* $X_1 = (5 \times 1 + 3) \pmod 8 = 8 \pmod 8 = \mathbf{0} \implies U_1 = 0/8 = \mathbf{0}$
+* $X_2 = (5 \times 0 + 3) \pmod 8 = 3 \pmod 8 = \mathbf{3} \implies U_2 = 3/8 = \mathbf{0,375}$
+* $X_3 = (5 \times 3 + 3) \pmod 8 = 18 \pmod 8 = \mathbf{2} \implies U_3 = 2/8 = \mathbf{0,25}$
+* $X_4 = (5 \times 2 + 3) \pmod 8 = 13 \pmod 8 = \mathbf{5} \implies U_4 = 5/8 = \mathbf{0,625}$
+* $X_5 = (5 \times 5 + 3) \pmod 8 = 28 \pmod 8 = \mathbf{4} \implies U_5 = 4/8 = \mathbf{0,5}$
+* $X_6 = (5 \times 4 + 3) \pmod 8 = 23 \pmod 8 = \mathbf{7} \implies U_6 = 7/8 = \mathbf{0,875}$
+* $X_7 = (5 \times 7 + 3) \pmod 8 = 38 \pmod 8 = \mathbf{6} \implies U_7 = 6/8 = \mathbf{0,75}$
+* $X_8 = (5 \times 6 + 3) \pmod 8 = 33 \pmod 8 = \mathbf{1} \implies U_8 = 1/8 = \mathbf{0,125}$
+
+Observação: Note que $X_8 = 1$, que é a nossa semente original ($X_0$). Isso 
+indica que o ciclo se completou.
+
+### 2. Implementação da Função lcg()
 ```{r}
-# define semente
-set.seed(20260507)
+library(tidyverse)
+  
+lcg <- function(n, seed, a, c, m) {
+  # Crie vetores vazios para guardar os valores gerados.
+  x <- numeric(n)
+  u <- numeric(n)
 
-# retornos possíveis e probabilidades
-retornos_possiveis <- c(0.06, 0.02, -0.01, -0.04)
-probabilidades <- c(0.15, 0.45, 0.25, 0.15)
+  # No início, o valor anterior é a semente X_0.
+  x_anterior <- seed
 
-# gera as amostras
-amostras <- sample(
-  x = retornos_possiveis, size = 10000, replace = TRUE,prob = probabilidades)
+  for (i in 1:n) {
+    # 1. Calcule a expressão a * X_{n-1} + c.
+    valor_bruto <- a * x_anterior + c
 
-# calcula os resultados
-retornos <- tibble(retorno = amostras) |> 
-  summarise(
-    valor_esperado     = mean(retorno),
-    variancia          = var(retorno),
-    desvio_padrao      = sd(retorno),
-    prob_retorno_negativo  = mean(retorno < 0)
+    # 2. Guarde em x[i] o resto da divisão por m.
+    x[i] <- valor_bruto %% m
+
+    # 3. Divida x[i] por m para obter u[i], um valor em [0, 1).
+    u[i] <- x[i] / m
+
+    # 4. O valor guardado em x[i] será usado na próxima repetição.
+    x_anterior <- x[i]
+  }
+
+  # Organize a sequência gerada em uma tabela.
+  resultado <- tibble(
+    iteracao = 1:n,
+    x = x,
+    u = u
   )
 
-# visão geral dos resultados
-glimpse(retornos)
+  return(resultado)
+}
+
+# Teste sua função com os parâmetros do cálculo manual.
+teste_lcg <- lcg(n = 8, seed = 1, a = 5, c = 3, m = 8)
+teste_lcg
 ```
+
+### 3. Análise de Repetição
+```{r}
+sequencia_curta <- lcg(n = 20, seed = 1, a = 5, c = 3, m = 8)
+glimpse(sequencia_curta)
+```
+
+A sequência retorna à semente no valor de $X$ na iteração 8 ($X_8 = 1$). 
+Consequentemente, os valores de $u$ começam a se repetir exatamente a partir da
+iteração 9 ($U_9 = U_1 = 0$).
+
+### 4. Comparação
+```{r}
+sequencia_longa <- lcg(n = 100, seed = 10, a = 11, c = 4, m = 23)
+glimpse(sequencia_longa)
+```
+
+Em comparação à sequência anterior, a utilização de um módulo maior aumentou 
+significativamente a variedade de valores. Enquanto no primeiro caso se tinha
+8 valores possíveis para $u$, neste se tem 23. A sequência observada parece ter 
+um ciclo mais longo.
+
+### 5. Comentário Interpretativo
+* A sequência é pseudoaleatória porque é gerada por uma fórmula matemática
+determinística. Se a semente e os parâmetros são conhecidos, é possível prever
+exatamente todos os números futuros. Diferente de um fenômeno verdadeiramente
+aleatório, que gera um resultado indeterminado.
+* A semente ($X_0$) é o ponto de partida. Ela garante a reprodutibilidade. Usar
+a mesma semente resulta nos mesmos resultados.
+* A divisão de $X_n$ pelo módulo $m$ distribui os valores no intervalo $[0, 1)$.
+Quanto maior o valor de $m$, maior a densidade de resultados possíveis, tornando
+a sequência mais próxima de uma distribuição uniforme contínua.
+* Por ser determinístico, o LCG eventualmente repete sua sequência, devido ao 
+número finito de restos de $m$. Ciclos curtos são uma limitação, pois introduzem
+correlações pouco representativas, sendo necessário o uso de períodos longos
+para simulações de grande escala.
+* A geração de uniformes pseudoaleatórias é a etapa fundamental da simulação de 
+Monte Carlo, visto que outras distribuições de probabilidade são obtidas através
+de transformações matemáticas aplicadas a valores extraídos de uma distribuição 
+uniforme contínua.
+
 
 ## Exercício 2
 
+### Item A
 ```{r}
-# define semente
-set.seed(20260508)
+# 1. Define a função
+f_a <- function(x) x^2
 
-# lucros possíveis e probabilidades
-lucros_possiveis <- c(900, 150, -3500)
-probabilidades <- c(0.88, 0.08, 0.04)
+# 2. Define a semente para reprodutibilidade
+set.seed(20260514)
 
-# gera as amostras
-amostras <- sample(
-  x = lucros_possiveis, size = 20000, replace = TRUE, prob = probabilidades)
+# 3. Gera N = 1000 valores uniformes
+N <- 1000
+a <- 1
+b <- 3
+u_a <- runif(N, min = a, max = b)
 
-# calcula os resultados
-analise_credito <- tibble(retorno = amostras) |> 
-  summarise(
-    lucro_medio     = mean(retorno),
-    desvio_padrao      = sd(retorno),
-    prob_prejuizo  = mean(retorno < 0)
-  )
+# 4. Estima via Monte Carlo
+estimativa_mc_a <- (b - a) * mean(f_a(u_a))
 
-# visão geral dos resultados
-glimpse(analise_credito)
+# 5. Obtem-se referência numérica
+referencia_a <- integrate(f_a, lower = a, upper = b)$value
 
-# simula 80 operações
-lucros_carteiras <- replicate(5000, {
-  sum(sample(lucros_possiveis, size = 80, replace = TRUE,
-             prob = probabilidades))
-})
+# 6. Calcula o erro absoluto
+erro_a <- abs(estimativa_mc_a - referencia_a)
 
-# valor esperado da carteira
-lucro_medio_carteira <- mean(lucros_carteiras)
-desvio_padrao_carteira <- sd(lucros_carteiras)
-
-# comparativo de resultados
-glimpse(lucro_medio_carteira)
-glimpse(80 * analise_credito$lucro_medio)
+# Exibe os resultados
+data.frame(Metodo = c("Monte Carlo", "Integrate", "Erro Absoluto"),
+           Valor = c(estimativa_mc_a, referencia_a, erro_a))
 ```
 
-## Exercício 3
-
+### Item B
 ```{r}
-# define semente
-set.seed(20260509)
+# 1. Define a função
+f_b <- function(x) sin(x)
 
-# sorteia o estado da economia
-simulacao_economia <- tibble(estado = sample(c("expansao", "recessao"), 
-                  size = 20000, 
-                  replace = TRUE, 
-                  prob = c(0.7, 0.3))
-)
+# 2. Define semente
+set.seed(20260514)
 
-# sorteia o o retorno condicionado ao estado
-simulacao_economia <- simulacao_economia |>
-  mutate(retorno = map_dbl(estado, \(e) {
-      if (e == "expansao") {
-        sample(c(0.05, 0.02, 0.00), size = 1, prob = c(0.3, 0.5, 0.2))
-      } else {sample(c(0.01, -0.02, -0.05), size = 1, prob = c(0.2, 0.5, 0.3))}
-    })
-  )
+# 3. Gera N = 1000 valores uniformes
+N <- 1000
+a <- 0
+b <- pi
+u_b <- runif(N, min = a, max = b)
 
-# visão prévia dos resultados
-glimpse(simulacao_economia)
+# 4. Estima via Monte Carlo
+estimativa_mc_b <- (b - a) * mean(f_b(u_b))
 
-# estima as métricas solicitadas
-analise_retornos <- simulacao_economia |> 
-  summarise(
-    esperado_incondicional = mean(retorno),
-    esperado_expansao      = mean(retorno[estado == "expansao"]),
-    esperado_recessao      = mean(retorno[estado == "recessao"]),
-    probabilidade_negativo     = mean(retorno < 0)
-  )
+# 5. Obtem-se referência numérica
+referencia_b <- integrate(f_b, lower = a, upper = b)$value
 
-# visão geral dos resultados
-glimpse(analise_retornos)
+# 6. Calcula o erro absoluto
+erro_b <- abs(estimativa_mc_b - referencia_b)
+
+# Exibição dos resultados
+data.frame(Metodo = c("Monte Carlo", "Integrate", "Erro Absoluto"),
+           Valor = c(estimativa_mc_b, referencia_b, erro_b))
 ```
 
-## Exercício 4
+### 7. Comentário conclusivo
 
-```{r}
-# define semente
-set.seed(20260510)
-
-# simula o cenário do mercado
-simulacao_carteira <- tibble(cenario = sample(c("boom", "estabilidade", "crise"), 
-                   size = 15000, 
-                   replace = TRUE, 
-                   prob = c(0.20, 0.50, 0.30))
-                   )
-# define dos retornos de A e B
-simulacao_carteira <- simulacao_carteira |> 
-  mutate(RA = case_when(
-      cenario == "boom"         ~ 0.08,
-      cenario == "estabilidade" ~ 0.02,
-      cenario == "crise"        ~ -0.05),
-    RB = case_when(
-      cenario == "boom"         ~ 0.04,
-      cenario == "estabilidade" ~ 0.01,
-      cenario == "crise"        ~ -0.02),
-    RP = 0.6 * RA + 0.4 * RB)
-
-# estima as métricas solicitadas
-metricas_ativos <- simulacao_carteira |> 
-  summarise(esperado_A = mean(RA), desvio_padrao_A = sd(RA),
-    esperado_B = mean(RB), desvio_padrao_B = sd(RB),
-    cov_AB = cov(RA, RB), cor_AB = cor(RA, RB),
-    prob_duplo_neg = mean(RA < 0 & RB < 0),
-    esperado_carteira_construida = mean(RP),
-    desvio_carteira_construida = sd(RP))
-
-# visão geral dos resultados
-glimpse(simulacao_carteira)
-```
-Analisando  os resultados, pode-se concluir que desvio-padrão da carteira
-construída é menor que o do Ativo A (diversificação).
-
-
-## Exercício 5
-
-```{r}
-# define semente
-set.seed(20260511)
-
-# cria função que simula um mês
-simular_mes <- function() {
-  cenario_sorteado <- sample(c("aquecido", "normal", "fraco"), 
-                             size = 1, 
-                             prob = c(0.25, 0.50, 0.25))
-  if (cenario_sorteado == "aquecido") {
-    n_contratos <- 120
-    p_inad <- 0.04
-  } else if (cenario_sorteado == "normal") {
-    n_contratos <- 90
-    p_inad <- 0.08
-  } else {
-    n_contratos <- 60
-    p_inad <- 0.15
-  }
-  
-  # simula o resultado de cada contrato
-  resultados_contratos <- sample(c(1, 0), 
-                                 size = n_contratos, 
-                                 replace = TRUE, 
-                                 prob = c(p_inad, 1 - p_inad))
-  
-  n_inadimplentes <- sum(resultados_contratos)
-  n_adimplentes   <- n_contratos - n_inadimplentes
-  
-  # calcula o lucro mensal total
-  lucro <- (n_adimplentes * 300) - (n_inadimplentes * 2500)
-  
-  # devolve os dados em formato de lista
-  return(list(cenario = cenario_sorteado, 
-              n_inad = n_inadimplentes, 
-              lucro = lucro))
-}
-
-# consolida em uma base de dados
-simulacao_completa <- replicate(10000, simular_mes(), simplify = FALSE) |> 
-  bind_rows()
-
-# calcula as estatísticas solicitadas
-estatisticas_financeira <- simulacao_completa |> 
-  summarise(
-    lucro_mensal_esperado = mean(lucro),
-    desvio_lucro_mensal = sd(lucro),
-    esperado_aquecido = mean(lucro[cenario == "aquecido"]),
-    esperado_normal = mean(lucro[cenario == "normal"]),
-    esperado_fraco = mean(lucro[cenario == "fraco"]),
-    cov_inadimplencia_lucro = cov(n_inad, lucro),
-    cor_inadimplencia_lucro = cor(n_inad, lucro),
-    probabilidade_lucro_neg = mean(lucro < 0)
-  )
-
-# visão geral dos resultados
-glimpse(estatisticas_financeira)
-```
-Ao analisar os resultados, pode-se concluir que a correlação negativa indica que
-quanto maior o número de inadimplentes, menor é o lucro.
+Observou-se que o resultado da simulação se aproximou da aproximação numérica
+de referência, resultando em um erro absoluto reduzido e que a convergência foi
+satisfatória.
