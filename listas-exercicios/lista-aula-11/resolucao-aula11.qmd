@@ -1,0 +1,141 @@
+---
+title: "Resolução: Lista de Exercícios - Aula 11"
+author: "Jonathan Vargas Silva"
+date: "2026-05-21"
+date-format: "DD/MM/YYYY"
+lang: ptBR
+format: pdf
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(EnvStats)
+
+# define opções globais para exibição de números
+options(digits = 5, scipen = 999)
+```
+
+# Resolução da Lista de exercícios
+
+## Exercício 1
+
+$$F(x) = \frac{1}{1 + e^{-(x - \mu)/\beta}}$$
+
+$$x = \mu + \beta \cdot \ln\left(\frac{u}{1 - u}\right)$$
+
+### Gerar 10.000 variáveis aleatórias
+```{r}
+# Define dos parâmetros
+n <- 10000
+mu <- 0
+beta <- 1
+
+# Gera valores da Uniforme(0, 1)
+u <- runif(n)
+
+# Aplica a função inversa deduzida
+valores_simulados <- mu + beta * log(u / (1 - u))
+
+glimpse(valores_simulados)
+```
+
+## Exercício 2
+
+$$ILR = \frac{\text{Ativo Circulante} - \text{Estoques}}{\text{Passivo Circulante}}$$
+
+```{r}
+
+# Define a semente e o tamanho da simulação
+set.seed(2024)
+n <- 20000
+
+# 1. Simula as variáveis
+ativo_circulante <- rtri(n, 800, 1200, 950)
+estoques   <- rtri(n, 200, 400, 280)
+passivo_circulante <- rtri(n, 600, 900, 720)
+
+# Calcula o ILR
+ilr_simulado <- (ativo_circulante - estoques) / passivo_circulante
+
+# 2. Calcula a probabilidade de ILR < 1
+prob_ilr_menor_1 <- mean(ilr_simulado < 1)
+```
+A probabilidade estimada de o Índice de Liquidez Rápida ser menor do que 1 é de 
+aproximadamente 48,7%. Isso significa que, em quase metade dos cenários 
+simulados, a empresa não teria ativos de curto prazo líquidos suficientes para
+cobrir suas obrigações imediatas sem recorrer à venda de estoques.
+
+```{r}
+# 3. Compara o ILR médio simulado com o modelo determinístico
+ilr_medio_simulado <- mean(ilr_simulado)
+ilr_deterministico <- (950 - 280) / 720
+comparacao_ilr <- tibble(
+  Métrica = c("ILR Médio Simulado", "ILR Determinístico"),
+  Valor = c(ilr_medio_simulado, ilr_deterministico))
+head(comparacao_ilr)
+```
+
+### 4. Neste cenário, em que a probabilidade de ILR < 1 é maior que 40%, recomendam-se as seguintes ações:
+- Negociar a transferência de parcelas do Passivo Circulante para o Passivo 
+Não-Circulante (longo prazo), reduzindo a pressão imediata sobre o caixa.
+- Buscar o aporte de recursos próprios ou linhas de financiamento de longo prazo
+para elevar o saldo do Ativo Circulante disponível.
+- Implementar políticas de estoques efientes, como o Just-In-Time, para diminuir
+o capital imobilizado em mercadorias e liberar liquidez imediata para o Ativo
+Circulante disponível.
+
+## Exercício 3
+
+```{r}
+#| message: false
+#| warning: false
+
+# Carrega os pacotes necessários
+library(PerformanceAnalytics)
+
+# 1. Importa o arquivo .rds
+caminho_arquivo <- "C:/R/GitHub/mpa_icd2026_cv/data/raw/retornos_xts.rds"
+retornos_xts <- read_rds(caminho_arquivo)
+
+# 2. Calcula o VaR histórico de uma determinada carteira
+
+# Define os parâmetros da carteira
+pesos <- c(1/3, 1/3, 1/3)
+valor_carteira <- 1000000
+
+# Calcula os resultados
+var_resultado <- VaR(
+  R = retornos_xts,
+  p = 0.95,
+  method = "historical",
+  weights = pesos,
+  portfolio_method = "component")
+
+# Extrai o VaR unitário e converte para o valor financeiro da carteira
+var_unitario <- var_resultado$hVaR
+var_financeiro <- var_unitario * valor_carteira
+
+# 3. Verifica a contribuição para o risco da carteira de cada uma das ações
+
+# Extrai as contribuições percentuais de cada ativo
+contribuicao_pct <- var_resultado$pct_contrib_hVaR * 100
+
+# Cria tabelas para exibição no relatório
+tabela_var <- tibble(
+  Métrica = c("VaR Unitário (R$ 1,00 investido)",
+              "VaR da Carteira (R$ 1.000.000,00)"),
+  Valor = c(var_unitario, var_financeiro))
+
+tabela_contribuicao <- tibble(
+  Ativo = colnames(retornos_xts),
+  `Contribuição (%)` = as.numeric(contribuicao_pct))
+
+head(tabela_var)
+head(tabela_contribuicao)
+```
+
