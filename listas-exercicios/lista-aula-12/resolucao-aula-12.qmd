@@ -1,0 +1,132 @@
+---
+title: "Resolução: Lista de Exercícios - Aula 12"
+author: "Jonathan Vargas Silva"
+date: "2026-05-28"
+date-format: "DD/MM/YYYY"
+lang: ptBR
+format: pdf
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(tidyquant)
+
+# define opções globais para exibição de números
+options(digits = 5, scipen = 999)
+```
+
+# Resolução da Lista de exercícios
+
+## Exercício 1
+
+```{r}
+# a. Importa os preços diários da PETR4.SA
+precos_petr4 <- tq_get("PETR4.SA", from = "2024-01-01", get = "stock.prices")
+
+# b. Calcula os retornos logarítmicos diários
+retornos_petr4 <- precos_petr4 |>
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = "daily",
+               type       = "log",
+               col_rename = "retorno_log") |>
+  drop_na()
+
+# c. Determina o valor financeiro e a probabilidade de excedência
+valor_carteira <- 10000
+prob_excedencia <- 0.01
+
+# d. Calcula o VaR histórico diário
+var_percentual <- quantile(retornos_petr4$retorno_log, probs = prob_excedencia)
+var_financeiro <- var_percentual * valor_carteira
+
+# e. Calcula o Expected Shortfall histório diário
+piores_retornos <- retornos_petr4 |> 
+  filter(retorno_log <= var_percentual)
+
+es_percentual <- mean(piores_retornos$retorno_log)
+es_financeiro <- es_percentual * valor_carteira
+
+# Mostra os resultados em uma tabela
+tabela_risco <- tibble(
+  Métrica = c("VaR Histórico", "Expected Shortfall"),
+  `Percentual (%)` = c(as.numeric(var_percentual) * 100, as.numeric(es_percentual) * 100),
+  `Financeiro (R$)` = c(as.numeric(var_financeiro), as.numeric(es_financeiro))
+)
+head(tabela_risco)
+```
+
+### f. Interpreta os resultados obtidos, explicando a diferença entre VaR e Expected Shortfall.
+Ao analisar os resultados, pode-se concluir que a divergência existente entre as
+duas métricas, ocorre porque, enquanto o VaR informa o ponto de corte da cauda
+de perdas, o Expected Shortfall informa a perda média nos casos em que esse
+ponto de corte é ultrapassado. Ou seja, o ES não apenas identifica onde começa
+a cauda extrema, mas também resume a severidade média das perdas dentro dessa 
+cauda. 
+
+## Exercício 2
+
+```{r}
+# a. Importa os preços diários
+tickers <- c("PETR4.SA", "MGLU3.SA", "ITUB4.SA")
+precos_carteira <- tq_get(tickers,
+                          from = "2024-01-01",
+                          get = "stock.prices")
+
+# b. Calcula os retornos logarítmicos diários para cada ativo
+retornos_ativos <- precos_carteira |>
+  group_by(symbol) |>
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = "daily",
+               type       = "log",
+               col_rename = "retorno") |>
+  ungroup()
+
+# c. Calcula o retorno diário ponderado da carteira
+retornos_largos <- retornos_ativos |>
+  pivot_wider(names_from = symbol, values_from = retorno) |>
+  drop_na()
+
+carteira_consolidada <- retornos_largos |>
+  mutate(retorno_carteira = (0.40 * PETR4.SA) + 
+                            (0.30 * MGLU3.SA) + 
+                            (0.30 * ITUB4.SA))
+
+# d. Define os parâmetros da carteira
+valor_carteira <- 50000
+prob_excedencia <- 0.01  # p = 1%
+
+# e. Calcula o VaR Histórico Diário
+var_percentual <- quantile(carteira_consolidada$retorno_carteira,
+                           probs = prob_excedencia)
+var_financeiro <- var_percentual * valor_carteira
+
+# f. Calcula o Expected Shortfall Histórico Diário
+piores_retornos <- carteira_consolidada |>
+  filter(retorno_carteira <= var_percentual)
+
+es_percentual <- mean(piores_retornos$retorno_carteira)
+es_financeiro <- es_percentual * valor_carteira
+
+# Mostra os resultados em uma tabela
+tabela_risco_carteira <- tibble(
+  Métrica = c("VaR Histórico da Carteira", "Expected Shortfall da Carteira"),
+  `Percentual (%)` = c(as.numeric(var_percentual) * 100,
+                       as.numeric(es_percentual) * 100),
+  `Financeiro (R$)` = c(as.numeric(var_financeiro), as.numeric(es_financeiro))
+)
+head(tabela_risco_carteira)
+```
+
+### g. Interpreta os resultados obtidos e explique por que o ES tende a ser maior que o VaR.
+Ao analisar os resultados, pode-se concluir que o Expected Shortfall sempre
+tende a apresentar um valor absoluto maior do que o VaR, por causa da sua
+definição matemática. Enquanto o VaR representa estritamente um ponto de corte,
+o ES calcula a média de todas as perdas que estão localizadas além desse ponto,
+ou seja, o prejuízo médio contido no extremo da cauda esquerda de distribuição.
