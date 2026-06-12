@@ -275,9 +275,9 @@
   
   # (e) Interpretação:
   
-  # Ao interpretar os resultados, podemos concluir que O Expected Shortfall (ES) é
-  # maior, em magnitude, porque Como o ES resume perdas ainda mais severas do que 
-  # o ponto de corte usado no VaR. O VaR é a porta de entrada para o pior 1% de 
+  # Ao interpretar os resultados, podemos concluir que O Expected Shortfall (ES)
+  # é maior, em magnitude, porque o ES resume perdas ainda mais severas do que o
+  # ponto de corte usado no VaR. O VaR é a porta de entrada para o pior 1% de
   # dias de crise do mercado. Já o ES calcula a média de todas as perdas que 
   # ultrapassaram a linha do VaR, resultando sempre em uma métrica de risco mais 
   # conservadora e severa.
