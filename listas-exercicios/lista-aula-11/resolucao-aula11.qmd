@@ -24,24 +24,88 @@ options(digits = 5, scipen = 999)
 
 ## Exercício 1
 
-$$F(x) = \frac{1}{1 + e^{-(x - \mu)/\beta}}$$
+Função de distribuição acumulada:
+$$F(x) = \frac{1}{1 + e^{-(x - \mu)/\beta}}.$$
+Fazendo:
+$$u = F(x),$$
 
-$$x = \mu + \beta \cdot \ln\left(\frac{u}{1 - u}\right)$$
+Temos:
+$$u = \frac{1}{1 + e^{-(x - \mu)/\beta}}.$$
+
+Agora, vamos isolar $x$, multiplicando os dois lados por $1 + e^{-(x - \mu)/\beta}$:
+$$u\left(1 + e^{-(x - \mu)/\beta}\right) = 1.$$
+
+Distribuindo $u$, obtemos:
+$$u + u e^{-(x - \mu)/\beta} = 1.$$
+
+Subtraindo $u$ dos dois lados:
+$$u e^{-(x - \mu)/\beta} = 1 - u.$$
+
+Dividindo os dois lados por $u$:
+$$e^{-(x - \mu)/\beta} = \frac{1 - u}{u}.$$
+Aplicando o logaritmo natural nos dois lados:
+$$-\frac{x - \mu}{\beta} = \log\left(\frac{1 - u}{u}\right).$$
+
+Multiplicando os dois lados por $-\beta$:
+$$x - \mu = -\beta \log\left(\frac{1 - u}{u}\right).$$
+
+Somando $u$ aos dois lados:
+$$x = \mu - \beta \log\left(\frac{1 - u}{u}\right).$$
+
+Como:
+$$-\log\left(\frac{1 - u}{u}\right) = \log\left(\frac{u}{1 - u}\right),$$
+
+Podemos escrever:
+$$x = \mu + \beta \log\left(\frac{u}{1 - u}\right).$$
+
+Função inversa da função de distribuição acumulada da distribuição Logística:
+$$F^{-1}(u) = \mu + \beta \log\left(\frac{u}{1 - u}\right), \qquad 0 < u < 1.$$
 
 ### Gerar 10.000 variáveis aleatórias
 ```{r}
-# Define dos parâmetros
-n <- 10000
+# fixa a semente
+set.seed(42)
+
+# simula U ~ Uniforme(0,1)
+u <- runif(10000)
+
+# define os parâmetros da distribuição Logística
 mu <- 0
 beta <- 1
 
-# Gera valores da Uniforme(0, 1)
-u <- runif(n)
+# gera X ~ Logística(mu, beta)
+x <- mu + beta * log(u / (1 - u))
+```
 
-# Aplica a função inversa deduzida
-valores_simulados <- mu + beta * log(u / (1 - u))
+### Histograma da amostra simulada
+```{r}
+# Histograma da amostra simulada ------------------------
+hist(x,
+      # número de classes do histograma
+     breaks      = 30,
+     # cor das barras
+     col         = "orange",
+     # escala em densidade (área total = 1)
+     probability = TRUE,         
+     main = expression("Logística(" * mu == 0 * "," ~ beta == 1 * ") via U(0,1)"),
+     xlab = "x",
+     ylab = "densidade")
 
-glimpse(valores_simulados)
+
+# Densidade teórica sobreposta --------------------------
+curve(dlogis(x, location = mu, scale = beta),
+      # adiciona a curva ao gráfico existente
+      add = TRUE,                
+      col = "blue", lwd = 2)
+
+
+# Legenda -----------------------------------------------
+legend("topright",
+       legend = c("Histograma dados simulados", "densidade teórica"),
+       col    = c("orange", "blue"),
+       lwd    = c(8, 2),
+       lty    = 1,
+       bty    = "n")
 ```
 
 ## Exercício 2
@@ -137,5 +201,33 @@ tabela_contribuicao <- tibble(
 
 head(tabela_var)
 head(tabela_contribuicao)
+
+# histograma do ILR simulado
+hist(ilr_sim,
+     breaks      = 50,
+     col         = "lightblue",
+     probability = TRUE,
+     main        = "Distribuição simulada do ILR",
+     xlab        = "Índice de Liquidez Rápida",
+     ylab        = "Densidade")
+
+# linha de referência: ILR = 1
+abline(v = 1,
+       col = "red",
+       lwd = 2,
+       lty = 2)
+
+# linha da média da distribuição simulada
+abline(v = ilr_medio,
+       col = "blue",
+       lwd = 2)
+
+# legenda
+legend("topright",
+       legend = c("ILR = 1", "Média da distribuição simulada"),
+       col    = c("red", "blue"),
+       lwd    = 2,
+       lty    = c(2, 1),
+       bty    = "n")
 ```
 

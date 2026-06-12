@@ -26,37 +26,37 @@ options(digits = 5, scipen = 999)
 
 ```{r}
 # a. Importa os preços diários da PETR4.SA
-precos_petr4 <- tq_get("PETR4.SA", from = "2024-01-01", get = "stock.prices")
+precos_petr4 <- "PETR4.SA" |>
+  tq_get(get = "stock.prices", from = "2024-01-01", to = "2026-06-02") |>
+  select(date, close)
 
 # b. Calcula os retornos logarítmicos diários
-retornos_petr4 <- precos_petr4 |>
-  tq_transmute(select     = adjusted,
-               mutate_fun = periodReturn,
-               period     = "daily",
-               type       = "log",
-               col_rename = "retorno_log") |>
-  drop_na()
+retorno_petr4 <- precos_petr4 |>
+  mutate(retorno_petr4 = log(close / dplyr::lag(close))) |>
+  drop_na() |>
+  pull(retorno_petr4) |>
+  sort()
 
 # c. Determina o valor financeiro e a probabilidade de excedência
 valor_carteira <- 10000
-prob_excedencia <- 0.01
+p <- 0.01
+
+k <- ceiling(length(retorno_petr4) * p)
 
 # d. Calcula o VaR histórico diário
-var_percentual <- quantile(retornos_petr4$retorno_log, probs = prob_excedencia)
-var_financeiro <- var_percentual * valor_carteira
+var_percentual <- -retorno_petr4[k] * 100
+var_financeiro <- -retorno_petr4[k] * valor_carteira
 
 # e. Calcula o Expected Shortfall histório diário
-piores_retornos <- retornos_petr4 |> 
-  filter(retorno_log <= var_percentual)
+es_percentual  <- -mean(retorno_petr4[1:k]) * 100
+es_financeiro  <- -mean(retorno_petr4[1:k]) * valor_carteira
 
-es_percentual <- mean(piores_retornos$retorno_log)
-es_financeiro <- es_percentual * valor_carteira
 
 # Mostra os resultados em uma tabela
 tabela_risco <- tibble(
-  Métrica = c("VaR Histórico", "Expected Shortfall"),
-  `Percentual (%)` = c(as.numeric(var_percentual) * 100, as.numeric(es_percentual) * 100),
-  `Financeiro (R$)` = c(as.numeric(var_financeiro), as.numeric(es_financeiro))
+  Medida = c("VaR Histórico (1%)", "Expected Shortfall Histórico (1%)"),
+  `Percentual (%)` = c(var_percentual, es_percentual),
+  `Financeiro (R$)` = c(var_financeiro, es_financeiro)
 )
 head(tabela_risco)
 ```
@@ -73,53 +73,59 @@ cauda.
 
 ```{r}
 # a. Importa os preços diários
-tickers <- c("PETR4.SA", "MGLU3.SA", "ITUB4.SA")
-precos_carteira <- tq_get(tickers,
-                          from = "2024-01-01",
-                          get = "stock.prices")
+serie_precos <- c("PETR4.SA", "MGLU3.SA", "ITUB4.SA") |>
+  tq_get(from = "2024-01-01") |>
+  select(symbol, date, close) |>
+  pivot_wider(names_from = symbol, values_from = close) |>
+  rename(
+    dia = date,
+    petr4 = PETR4.SA,
+    mglu3 = MGLU3.SA,
+    itub4 = ITUB4.SA
+  )
 
 # b. Calcula os retornos logarítmicos diários para cada ativo
-retornos_ativos <- precos_carteira |>
-  group_by(symbol) |>
-  tq_transmute(select     = adjusted,
-               mutate_fun = periodReturn,
-               period     = "daily",
-               type       = "log",
-               col_rename = "retorno") |>
-  ungroup()
+retornos <- serie_precos |>
+  mutate(
+    ret_petr4 = log(petr4 / dplyr::lag(petr4)),
+    ret_mglu3 = log(mglu3 / dplyr::lag(mglu3)),
+    ret_itub4 = log(itub4 / dplyr::lag(itub4))
+  ) |>
+  drop_na()
 
 # c. Calcula o retorno diário ponderado da carteira
 retornos_largos <- retornos_ativos |>
   pivot_wider(names_from = symbol, values_from = retorno) |>
   drop_na()
 
-carteira_consolidada <- retornos_largos |>
-  mutate(retorno_carteira = (0.40 * PETR4.SA) + 
-                            (0.30 * MGLU3.SA) + 
-                            (0.30 * ITUB4.SA))
+retornos <- retornos |>
+  mutate(
+    ret_carteira = pesos[1] * ret_petr4 +
+                   pesos[2] * ret_mglu3 +
+                   pesos[3] * ret_itub4
+  )
 
 # d. Define os parâmetros da carteira
+pesos <- c(0.4, 0.3, 0.3)
 valor_carteira <- 50000
-prob_excedencia <- 0.01  # p = 1%
+p <- 0.01
+
+ret_ordenado <- sort(retornos$ret_carteira)
+k <- ceiling(length(ret_ordenado) * p)
 
 # e. Calcula o VaR Histórico Diário
-var_percentual <- quantile(carteira_consolidada$retorno_carteira,
-                           probs = prob_excedencia)
-var_financeiro <- var_percentual * valor_carteira
+var_percent <- -ret_ordenado[k] * 100
+var_financ <- -ret_ordenado[k] * valor_carteira
 
 # f. Calcula o Expected Shortfall Histórico Diário
-piores_retornos <- carteira_consolidada |>
-  filter(retorno_carteira <= var_percentual)
-
-es_percentual <- mean(piores_retornos$retorno_carteira)
-es_financeiro <- es_percentual * valor_carteira
+es_percent  <- -mean(ret_ordenado[1:k]) * 100
+es_financ  <- -mean(ret_ordenado[1:k]) * valor_carteira
 
 # Mostra os resultados em uma tabela
 tabela_risco_carteira <- tibble(
-  Métrica = c("VaR Histórico da Carteira", "Expected Shortfall da Carteira"),
-  `Percentual (%)` = c(as.numeric(var_percentual) * 100,
-                       as.numeric(es_percentual) * 100),
-  `Financeiro (R$)` = c(as.numeric(var_financeiro), as.numeric(es_financeiro))
+  Medida = c("VaR Histórico (1%)", "Expected Shortfall Histórico (1%)"),
+  `Percentual (%)` = c(var_percent, es_percent),
+  `Financeiro (R$)` = c(var_financ, es_financ)
 )
 head(tabela_risco_carteira)
 ```
