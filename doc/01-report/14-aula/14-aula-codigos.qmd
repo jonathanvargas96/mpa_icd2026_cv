@@ -322,9 +322,36 @@ Sequência sugerida: `specify()` → `generate(type = "bootstrap")` →
 
 ```{r}
 #| label: ex1
+# define a semente
+set.seed(2026)
 
-# escreva sua resolução aqui
+# define a ordem esperada dos grupos
+ordem_incentivos <- c("Incentivo monetário", "Incentivo não monetário")
 
+# fluxo de Inferência
+dist_bootstrap <- dados_incentivos |> 
+  # 1. declarar a relação entre produtividade e grupo
+  specify(produtividade ~ grupo) |> 
+  # 2. gerar as amostras de bootstrap
+  generate(reps = 5000, type = "bootstrap") |> 
+  # 3. calcular a diferença de médias
+  calculate(stat = "diff in means", order = ordem_incentivos)
+
+# 4. intervalo de confiança de 95%
+ic_95 <- dist_bootstrap |> 
+  get_confidence_interval(level = 0.95)
+
+# exibe o intervalo de confiança
+ic_95
+
+# 5. interpretação do resultado
+
+# Interpretação: com 95% de confiança, a verdadeira diferença média de 
+# produtividade entre os funcionários que receberam incentivo monetário e não
+# monetário está contida entre 0.68 e 4.97 unidades de produtividade.
+# Como o intervalo é totalmente positivo e não inclui o valor zero, há evidências 
+# estatísticas de que o incentivo monetário de fato gera uma produtividade média 
+# superior a do incentivo não monetário.
 ```
 
 
@@ -340,9 +367,45 @@ leitura causal.
 
 ```{r}
 #| label: ex2
+# Exercício 2: Teste por Permutação ------------------------------------------
 
-# escreva sua resolução aqui
+# define a semente
+set.seed(2026)
+ordem_incentivos <- c("Incentivo monetário", "Incentivo não monetário")
 
+# calcula a estatística observada
+diff_observada <- dados_incentivos |> 
+  specify(produtividade ~ grupo) |> 
+  calculate(stat = "diff in means", order = ordem_incentivos)
+
+# - exibe a diferença observada no console
+diff_observada
+
+# construção da distribuição nula via permutação
+dist_nula_permutacao <- dados_incentivos |> 
+  specify(produtividade ~ grupo) |> 
+  hypothesize(null = "independence") |> 
+  generate(reps = 5000, type = "permute") |> 
+  calculate(stat = "diff in means", order = ordem_incentivos)
+
+# calcula o valor-P simulado
+valor_p <- dist_nula_permutacao |> 
+  get_p_value(obs_stat = diff_observada, direction = "both")
+
+# - exibe o valor-p no console
+valor_p
+
+# - o que o teste permite concluir:
+# Como o valor-p (0,0124) é menor que o nível de significância padrão de 5%
+# (0,05), rejeitamos a hipótese nula. O teste permite concluir que o tipo de 
+# incentivo altera de forma estatisticamente significante a produtividade média,
+# sendo o incentivo monetário superior.
+
+# - que condição do desenho experimental sustenta a leitura causal: 
+# A condição que sustenta a leitura causal é a aleatorização (randomização) na 
+# distribuição dos funcionários entre os grupos. Ela garante que os grupos 
+# fossem homogêneos antes do experimento, isolando o tipo de incentivo como a 
+# única causa provável para a diferença de produtividade observada.
 ```
 
 
