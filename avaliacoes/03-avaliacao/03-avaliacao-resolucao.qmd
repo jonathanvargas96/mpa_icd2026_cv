@@ -131,6 +131,6 @@ existência do efeito, para o seu tamanho e precisão.
 de forma contínua, em vez de usar estrelas de significância ou limiares
 arbitrários que reduzem a análise a uma decisão binária.
 
-* Para redução de incentivos ao p-hacking e ao viés de publicação: adotar e 
+* Para a redução de incentivos ao p-hacking e ao viés de publicação: adotar e 
 registrar planos de pré-análise, antes da coleta de dados, especificando, 
 detalhadamente, todas as regressões e subgrupos que serão analisados.
