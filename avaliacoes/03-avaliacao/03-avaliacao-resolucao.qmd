@@ -1,0 +1,136 @@
+---
+lang: pt-BR
+title: "Resolução Avaliação 3"
+subtitle: "Introdução à Ciência de Dados - 2026/1 <br> Mestrado Profissional em Administração"
+author: "Jonathan Vargas Silva"
+date: 2026-06-25
+date-format: long
+title-block-banner: "#27445C"
+format:
+  html:
+    embed-resources: true
+    toc: true
+execute:
+  echo: true
+  warning: false
+  message: false
+editor: source
+---
+
+
+```{r}
+#| label: setup
+#| echo: true
+
+# configura a exibição de números
+options(digits = 3, scipen = 99)
+
+# Carrega os pacotes necessários
+library(here) # para usar caminhos relativos de arquivos
+library(tidyverse)  # Inclui readr, dplyr, tidyr, ggplot2, etc.
+```
+
+
+
+# Questão 1 
+
+
+**a)** 
+
+```{r}
+# caminhos relativos dos arquivos CSV
+instituicoes_financeiras_csv <- here("data/raw/instituicoes_financeiras.csv")
+indicadores_contabeis_csv <- here("data/raw/indicadores_contabeis.csv")
+carteira_credito_csv <- here("data/raw/carteira_credito.csv")
+
+# importacao dos arquivos CSV
+instituicoes_financeiras <- read_csv(instituicoes_financeiras_csv)
+indicadores_contabeis <- read_csv(indicadores_contabeis_csv)
+carteira_credito <- read_csv(carteira_credito_csv)
+
+# pipeline para combinar as 3 tabelas
+dados_financeiros <- indicadores_contabeis |>
+  # primeiro join: adiciona a carteira de credito
+  left_join(carteira_credito, by = c("id_instituicao", "ano")) |>
+  # segundo join: adiciona o cadastro das instituicoes
+  left_join(instituicoes_financeiras, by = "id_instituicao")
+
+# verifica a estrutura dos dados combinados
+glimpse(dados_financeiros)
+
+# exibe as 10 primeiras linhas
+head(dados_financeiros, n = 10)
+```
+
+
+
+
+**b)** 
+
+```{r}
+# resumo por instituicao
+resumo_instituicoes <- dados_financeiros |>
+  # cria o indicador de rentabilidade
+  mutate(roa = resultado_liquido / ativo_total) |>
+  # agrupa pelo codigo e pelo nome da instituicao
+  group_by(id_instituicao, nome_instituicao) |>
+  # calcula as médias agrupadas do periodo 
+  summarise(
+    media_ativo_total = mean(ativo_total, na.rm = TRUE),
+    media_carteira_credito = mean(carteira_credito, na.rm = TRUE),
+    media_inadimplencia = mean(inadimplencia, na.rm = TRUE),
+    roa_medio = mean(roa, na.rm = TRUE)
+  ) |>
+  # seleciona as variaveis finais
+  select(id_instituicao, nome_instituicao, media_ativo_total, media_carteira_credito, media_inadimplencia, roa_medio)
+
+# verifica a estrutura do resumo
+glimpse(resumo_instituicoes)
+
+# exibe as 10 primeiras linhas
+head(resumo_instituicoes, n = 10)
+```
+
+
+
+
+
+# Questão 2 
+
+
+**a.**  
+
+Em síntese, a distinção entre os dois tipos de problema ocorre pelo fato
+de que o objetivo dos problemas de estimação é descobrir a magnitude de um 
+efeito e a sua incerteza, enquanto os problemas genuínos de teste de hipótese 
+têm o objetivo de tomar uma decisão binária estrita entre duas hipóteses
+exequíveis e excludentes.
+
+O foco excessivo em testar uma hipótese nula de efeito zero e na busca por 
+valores-p menores que 0,05 desvia a atenção da pergunta central porque a maioria
+das questões econômicas relevantes diz respeito à magnitude e à incerteza das 
+estimativas pontuais, e não à mera existência de um efeito. Em muitos contextos, 
+a literatura prévia já acumulou evidências suficientes para afirmar que o efeito
+é positivo, tornando o teste de uma hipótese nula de impacto zero irrelevante e 
+sem interesse substantivo. Dessa forma, a fixação por limiares de significância 
+estatística faz com que os estudos priorizem a rejeição mecânica de um valor
+nulo em detrimento da discussão econômica real sobre o tamanho do impacto, sua
+precisão e a robustez do desenho de identificação.
+
+
+**b.** 
+
+A partir do argumento de Imbens (2021), de forma sucinta, as três recomendações 
+práticas para relatar resultados empíricos são:
+
+* Para a apresentação de estimativas e incerteza: reportar a magnitude do efeito,
+acompanhada de seu respectivo intervalo de confiança, mudando o foco da mera
+existência do efeito, para o seu tamanho e precisão.
+
+* Para o uso de valores-p em testes de fato genuínos: reportar o valor-p exato
+de forma contínua, em vez de usar estrelas de significância ou limiares
+arbitrários que reduzem a análise a uma decisão binária.
+
+* Para redução de incentivos ao p-hacking e ao viés de publicação: adotar e 
+registrar planos de pré-análise, antes da coleta de dados, especificando, 
+detalhadamente, todas as regressões e subgrupos que serão analisados.
